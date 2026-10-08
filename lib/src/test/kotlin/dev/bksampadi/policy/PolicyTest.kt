@@ -2,6 +2,7 @@ package dev.bksampadi.policy
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 
 class PolicyTest {
     @Test
@@ -29,5 +30,28 @@ class PolicyTest {
             )
 
         assertEquals(Decision.Deny("signature required"), policy.evaluate("artifact"))
+    }
+
+    @Test
+    fun `policy stops evaluating after first denial`() {
+        var secondRuleExecuted = false
+
+        val policy =
+            Policy(
+                listOf(
+                    Rule<Int> {
+                        Decision.Deny("Rejected")
+                    },
+                    Rule<Int> {
+                        secondRuleExecuted = true
+                        Decision.Allow
+                    },
+                ),
+            )
+
+        val result = policy.evaluate(42)
+
+        assertEquals(Decision.Deny("Rejected"), result)
+        assertFalse(secondRuleExecuted)
     }
 }
